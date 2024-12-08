@@ -1,19 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-
-<body>
-    <div class="App">
-        <header class="App-header">
-            <img src="{{ url_for('static', filename='Octocat.png') }}" class="App-logo" alt="logo" />
-            <p>
-                GitHub Codespaces <span class="heart">♥️</span> Flask
-            </p>
-            <p class="small">
-                Edit <code>templates/index.html</code> and refresh to see your changes!
-            </p>
-        </header>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <!-- Enlace a Bootstrap -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <div class="text-center">
+        <h1 class="mb-4">Hola, {{ user_info['given_name'] }}!</h1>
+        <p class="lead">Tu correo es: <strong>{{ user_info['email'] }}</strong></p>
+        <a href="{{ url_for('logout') }}" class="btn btn-danger btn-lg">Log Out</a>
+        <br><br>
+        <!-- Botón para validar token -->
+        <button id="validateTokenBtn" class="btn btn-primary btn-lg">Validar Token</button>
+        <!-- Área para mostrar el resultado -->
+        <div id="validationResult" class="mt-4"></div>
     </div>
-</body>
 
+    <!-- Scripts de Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Script de Validación -->
+    <script>
+        document.getElementById("validateTokenBtn").addEventListener("click", function() {
+            // Mostrar mensaje de carga
+            const resultDiv = document.getElementById("validationResult");
+            resultDiv.innerHTML = '<div class="text-info">Validando token...</div>';
+
+            // Realizar solicitud al servidor
+            fetch("/validate-token", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            Token válido. Tipo: ${data.type}<br>
+                            Información: ${JSON.stringify(data.user_info || data.token_info)}
+                            Preguntas: ${JSON.stringify(data.Preguntas)}
+                        </div>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            Token inválido.<br>
+                            Error: ${data.error}
+                        </div>`;
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML = `
+                    <div class="alert alert-danger">
+                        Ocurrió un error al validar el token.<br>
+                        Detalles: ${error.message}
+                    </div>`;
+            });
+        });
+    </script>
+</body>
 </html>
